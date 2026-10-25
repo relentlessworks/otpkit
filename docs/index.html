@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>otpkit — Agentic-first TOTP/HOTP Service</title>
+<style>
+:root { --bg:#0d1117; --card:#161b22; --border:#30363d; --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; --green:#3fb950; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; line-height:1.6; }
+.container { max-width:900px; margin:0 auto; padding:2rem 1rem; }
+.hero { text-align:center; padding:3rem 0; }
+.hero h1 { font-size:3rem; margin-bottom:0.5rem; }
+.hero .tagline { color:var(--muted); font-size:1.2rem; margin-bottom:1.5rem; }
+.badges { display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap; margin-bottom:1.5rem; }
+.badge { background:var(--card); border:1px solid var(--border); border-radius:6px; padding:0.25rem 0.75rem; font-size:0.85rem; }
+.badge.go { color:var(--accent); }
+.badge.license { color:var(--green); }
+.cta { display:flex; gap:1rem; justify-content:center; }
+.cta a { padding:0.6rem 1.5rem; border-radius:6px; text-decoration:none; font-weight:600; }
+.cta .primary { background:var(--accent); color:var(--bg); }
+.cta .secondary { border:1px solid var(--border); color:var(--text); }
+section { padding:2rem 0; }
+section h2 { font-size:1.5rem; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.5rem; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:1rem; }
+.card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:1.5rem; }
+.card h3 { color:var(--accent); margin-bottom:0.5rem; }
+.card p { color:var(--muted); font-size:0.9rem; }
+code { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:0.15rem 0.4rem; font-size:0.85rem; }
+pre { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:1rem; overflow-x:auto; font-size:0.85rem; }
+footer { text-align:center; padding:2rem 0; color:var(--muted); border-top:1px solid var(--border); }
+@media(max-width:600px){ .hero h1{font-size:2rem;} .grid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <h1>otpkit</h1>
+    <p class="tagline">Agentic-first TOTP and HOTP generation and verification service</p>
+    <div class="badges">
+      <span class="badge go">Go</span>
+      <span class="badge">RFC 6238</span>
+      <span class="badge">RFC 4226</span>
+      <span class="badge">MCP</span>
+      <span class="badge license">MIT</span>
+    </div>
+    <div class="cta">
+      <a class="primary" href="https://github.com/relentlessworks/otpkit">GitHub</a>
+      <a class="secondary" href="https://github.com/relentlessworks/otpkit#api-reference">Docs</a>
+    </div>
+  </div>
+
+  <section>
+    <h2>Principles</h2>
+    <div class="grid">
+      <div class="card"><h3>Agent IS the Interface</h3><p>No UI, no SDK. The API is the product. Every endpoint designed for AI agents.</p></div>
+      <div class="card"><h3>Plain Text by Default</h3><p>One grepable line per record. Token-cheap. JSON on demand via <code>?format=json</code>.</p></div>
+      <div class="card"><h3>Instructive Errors</h3><p>Every 4xx includes a hint telling the agent what to do next.</p></div>
+      <div class="card"><h3>Self-Documenting</h3><p><code>GET /help</code> returns a one-page operating manual.</p></div>
+      <div class="card"><h3>Single Binary</h3><p>Go + zero external deps. CGO_ENABLED=0. Deploys as one file.</p></div>
+      <div class="card"><h3>MCP Connector</h3><p>Speaks Model Context Protocol at <code>/mcp</code> with 10 tools.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Quick Start</h2>
+    <pre>$ make build
+$ ./otpkit
+
+# Generate a TOTP code
+$ curl "http://localhost:8470/totp?secret=JBSWY3DPEHPK3PXP"
+code=123456 digits=6 period=30 algorithm=SHA1 remaining=25
+
+# Verify a TOTP code
+$ curl "http://localhost:8470/totp/verify?secret=JBSWY3DPEHPK3PXP&code=123456"
+valid=true window=1
+
+# Generate a new secret
+$ curl "http://localhost:8470/secret"
+secret=KRSXG5BAIFAUKVTFNFGGYZLTNE bytes=20
+
+# Generate otpauth:// URI
+$ curl "http://localhost:8470/uri?secret=JBSWY3DPEHPK3PXP&label=alice&issuer=ACME"
+uri=otpauth://totp/ACME:alice?secret=JBSWY3DPEHPK3PXP&... type=totp label=alice</pre>
+  </section>
+
+  <section>
+    <h2>API Endpoints</h2>
+    <div class="grid">
+      <div class="card"><h3>GET /totp</h3><p>Generate time-based OTP (RFC 6238)</p></div>
+      <div class="card"><h3>GET /totp/verify</h3><p>Verify TOTP with clock drift window</p></div>
+      <div class="card"><h3>GET /hotp</h3><p>Generate counter-based OTP (RFC 4226)</p></div>
+      <div class="card"><h3>GET /hotp/verify</h3><p>Verify HOTP with look-ahead window</p></div>
+      <div class="card"><h3>GET /secret</h3><p>Generate random base32 secret</p></div>
+      <div class="card"><h3>GET /uri</h3><p>Generate otpauth:// URI for authenticator apps</p></div>
+      <div class="card"><h3>GET /totp/remaining</h3><p>Seconds left in current window</p></div>
+      <div class="card"><h3>POST /mcp</h3><p>MCP JSON-RPC 2.0 with 10 tools</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Configuration</h2>
+    <pre>Flag      Env              Default    Description
+-addr     OTPKIT_ADDR      :8470      Listen address
+-no-auth  OTPKIT_NO_AUTH   false      Disable auth (dev mode)</pre>
+  </section>
+
+  <footer>
+    <p>otpkit — built by <a href="https://github.com/relentlessworks" style="color:var(--accent)">relentlessworks</a> · MIT License</p>
+  </footer>
+</div>
+</body>
+</html>
